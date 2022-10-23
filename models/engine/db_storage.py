@@ -40,44 +40,6 @@ class DBStorage:
         if HBNB_ENV == "test":
             Base.metadata.drop_all(self.__engine)
 
-    def get(self, cls, id):
-        """Retrieves an object based on the class name and its ID.
-        Performs a query on the database to retrieve the matching row if it
-        exists and uses the columns to create the object for return.
-        Args:
-            cls (str): String representing the class name(Place, User, Amenity)
-            id: (str): UUID4 string representing the object ID.
-        Returns:
-            The object if it exists. None if cls or id is None or if the
-            object does not exist.
-        """
-        if cls is None or cls not in classes or id is None or type(id) is not \
-                str:
-            return None
-        cls = classes[cls]
-        objs = self.__session.query(cls).filter(cls.id == id)
-        if objs is None:
-            return None
-        return (objs.first())
-
-    def count(self, cls=None):
-        """Retrieves the total number of object based on the class name.
-        Performs a query on the database to retrieve the matching row if it
-        exists and uses the columns to create the object for return.
-        Args:
-            cls (str): String representing the class name(Place, User, Amenity)
-        Returns:
-            The object if it exists. If cls is None, the total number of
-            objects stored is returned.
-        """
-        count = 0
-        for clss in classes:
-            if cls is None or cls is classes[clss] or cls is clss:
-                objs = self.__session.query(classes[clss]).all()
-                for obj in objs:
-                    count += 1
-        return count
-
     def all(self, cls=None):
         """query on the current database session"""
         new_dict = {}
@@ -112,3 +74,24 @@ class DBStorage:
     def close(self):
         """call remove() method on the private session attribute"""
         self.__session.remove()
+
+    def get(self, cls, id):
+        """A method to retrieve one object"""
+        if cls is not None and type(cls) is str and id is not None and \
+                type(id) is str and cls in classes:
+            cls = classes[cls]
+            result = self.__session.query(cls).filter(cls.id == id).first()
+            return result
+        else:
+            return None
+
+    def count(self, cls=None):
+        """Count number of objects in storage"""
+        total = 0
+        if type(cls) == str and cls in classes:
+            cls = classes[cls]
+            total = self.__session.query(cls).count()
+        elif cls is None:
+            for cls in classes.values():
+                total += self.__session.query(cls).count()
+        return total
